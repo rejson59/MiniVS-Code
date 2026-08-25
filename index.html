@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimal Vibe OS v7</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: monospace, system-ui, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Pasek Górny */
+    .top-nav {
+      height: 40px;
+      background: #000000;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      z-index: 5;
+    }
+
+    .hamburger {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 1.1rem;
+      padding: 0 15px;
+      height: 100%;
+      cursor: pointer;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .hamburger:hover { color: #ffffff; }
+
+    .tabs-container {
+      display: flex;
+      overflow-x: auto;
+      height: 100%;
+      flex: 1;
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.4);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      height: 100%;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .tab:hover { color: rgba(255, 255, 255, 0.8); }
+    .tab.active {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid #ffffff;
+    }
+
+    .tab-close {
+      font-size: 0.75rem;
+      opacity: 0.4;
+      padding: 2px;
+    }
+    .tab-close:hover { opacity: 1; color: #ff5555; }
+
+    /* Pełnoekranowe Menu */
+    .fullscreen-menu {
+      position: fixed;
+      top: 40px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 40px);
+      background: #000000;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .fullscreen-menu.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .actions { display: flex; gap: 8px; position: relative; }
+
+    .btn-action {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.5);
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-action:hover { border-color: #ffffff; color: #ffffff; }
+    .btn-action.active-mode {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+
+    .tree-container {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* Drzewo Plików */
+    ul { list-style: none; padding-left: 15px; }
+    .root-tree { padding-left: 0; }
+    li { user-select: none; margin: 6px 0; }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #ffffff;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .item:hover { background: rgba(255, 255, 255, 0.05); }
+    .item.target-highlight {
+      border: 1px dashed #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .btn-inline {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .btn-inline:hover { background: rgba(255, 255, 255, 0.2); }
+    .btn-inline.target-active {
+      background: #ffffff;
+      color: #000000;
+      border-color: #ffffff;
+    }
+    .btn-inline.btn-delete-confirm {
+      background: #ff3333;
+      color: #ffffff;
+      border-color: #ff3333;
+    }
+
+    .ext-tag {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.4);
+      margin-left: auto;
+    }
+
+    .arrow { width: 12px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); }
+    .nested { display: none; }
+    .nested.open { display: block; }
+
+    .rename-input {
+      background: #000000;
+      border: 1px solid #ffffff;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 2px 6px;
+      outline: none;
+      border-radius: 3px;
+      width: 100%;
+    }
+
+    /* Modale */
+    .dropdown-modal {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: #000000;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px;
+      border-radius: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 30;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      min-width: 140px;
+    }
+    .dropdown-modal.open { display: flex; }
+    
+    .modal-option {
+      background: none;
+      border: none;
+      color: #ffffff;
+      text-align: left;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      border-radius: 3px;
+    }
+    .modal-option:hover { background: rgba(255, 255, 255, 0.1); }
+
+    /* Edytor */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      background: #000000;
+    }
+
+    textarea {
+      flex: 1;
+      background: #000000;
+      color: #ffffff;
+      border: none;
+      outline: none;
+      padding: 20px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pasek Górny -->
+  <div class="top-nav">
+    <button class="hamburger" id="btnToggleMenu">☰</button>
+    <div class="tabs-container" id="tabsBar"></div>
+  </div>
+
+  <!-- Menu Pełnoekranowe -->
+  <div class="fullscreen-menu" id="fullMenu">
+    <div class="menu-header">
+      <span id="menuTitle">STRUKTURA PLIKÓW</span>
+      <div class="actions">
+        <button class="btn-action" id="btnNewFolder" title="Nowy Folder">📁+</button>
+        <button class="btn-action" id="btnNewFile" title="Nowy Plik">📄+</button>
+        <button class="btn-action" id="btnToggleEdit" title="Tryb Edycji">✏️</button>
+        <button class="btn-action" id="btnExportImportMenu" title="Eksport / Import">💾</button>
+
+        <div class="dropdown-modal" id="modalExportImport">
+          <button class="modal-option" id="btnExport">⬇️ Eksportuj</button>
+          <button class="modal-option" id="btnImportTrigger">⬆️ Importuj</button>
+        </div>
+      </div>
+    </div>
+    <div class="tree-container">
+      <ul class="root-tree" id="fileTree"></ul>
+    </div>
+  </div>
+
+  <!-- Modal rozszerzenia -->
+  <div class="dropdown-modal" id="modalExt">
+    <button class="modal-option" data-ext=".pomysl">.pomysl</button>
+    <button class="modal-option" data-ext=".kod">.kod</button>
+    <button class="modal-option" data-ext=".nota">.nota</button>
+    <button class="modal-option" data-ext=".todo">.todo</button>
+  </div>
+
+  <input type="file" id="importFile" accept=".json" style="display: none;">
+
+  <!-- Główny Edytor -->
+  <div class="editor-container">
+    <textarea id="editor" placeholder="Wybierz plik z menu (☰), aby edytować..." disabled></textarea>
+  </div>
+
+  <script>
+    let fileData = JSON.parse(localStorage.getItem('vibe_files')) || [
+      {
+        id: '1', name: 'Projekty', type: 'folder', open: true, children: [
+          { id: '2', name: 'vibe_os', ext: '.kod', type: 'file', content: '// Czysty motyw' },
+          { id: '3', name: 'pomysl_na_apke', ext: '.pomysl', type: 'file', content: 'Wyszukiwanie sygnałów...' }
+        ]
+      },
+      { id: '4', name: 'notatki', ext: '.nota', type: 'file', content: 'Tekst notatki...' }
+    ];
+
+    let openTabs = JSON.parse(localStorage.getItem('vibe_tabs')) || [];
+    let activeFileId = localStorage.getItem('vibe_active') || null;
+    let isEditMode = false;
+    let targetFolderForMove = null;
+    let deleteConfirmId = null; // Identyfikator elementu oczekującego na potwierdzenie usunięcia
+
+    const fullMenu = document.getElementById('fullMenu');
+    const btnToggleMenu = document.getElementById('btnToggleMenu');
+    const fileTree = document.getElementById('fileTree');
+    const tabsBar = document.getElementById('tabsBar');
+    const editor = document.getElementById('editor');
+    const modalExt = document.getElementById('modalExt');
+    const modalExportImport = document.getElementById('modalExportImport');
+    const btnToggleEdit = document.getElementById('btnToggleEdit');
+    const btnExportImportMenu = document.getElementById('btnExportImportMenu');
+    const importFileInput = document.getElementById('importFile');
+    const menuTitle = document.getElementById('menuTitle');
+
+    function saveState() {
+      localStorage.setItem('vibe_files', JSON.stringify(fileData));
+      localStorage.setItem('vibe_tabs', JSON.stringify(openTabs));
+      localStorage.setItem('vibe_active', activeFileId || '');
+    }
+
+    btnToggleMenu.addEventListener('click', () => {
+      fullMenu.classList.toggle('open');
+      closeAllModals();
+    });
+
+    btnToggleEdit.addEventListener('click', () => {
+      isEditMode = !isEditMode;
+      btnToggleEdit.classList.toggle('active-mode', isEditMode);
+      if (!isEditMode) {
+        targetFolderForMove = null;
+        deleteConfirmId = null;
+      }
+      menuTitle.textContent = isEditMode ? 'TRYB EDYCJI' : 'STRUKTURA PLIKÓW';
+      renderTree();
+    });
+
+    function closeAllModals() {
+      modalExt.classList.remove('open');
+      modalExportImport.classList.remove('open');
+    }
+
+    function renderTree() {
+      fileTree.innerHTML = '';
+      buildTree(fileData, fileTree, null);
+    }
+
+    function buildTree(nodes, container, parentArray) {
+      nodes.forEach((node, index) => {
+        const li = document.createElement('li');
+        const item = document.createElement('div');
+        item.className = `item ${node.type}`;
+        if (targetFolderForMove === node.id) {
+          item.classList.add('target-highlight');
+        }
+
+        let htmlContent = '';
+        if (node.type === 'folder') {
+          htmlContent = `<span class="arrow">${node.open ? '▾' : '▸'}</span><span class="label">${node.name}</span>`;
+        } else {
+          htmlContent = `<span class="label">${node.name}</span><span class="ext-tag">${node.ext}</span>`;
+        }
+
+        // Akcje w trybie edycji
+        if (isEditMode) {
+          const isDeleting = deleteConfirmId === node.id;
+          htmlContent += `<div class="item-actions">`;
+          if (index > 0) htmlContent += `<button class="btn-inline" onclick="moveOrder('${node.id}', 'up')">▲</button>`;
+          if (index < nodes.length - 1) htmlContent += `<button class="btn-inline" onclick="moveOrder('${node.id}', 'down')">▼</button>`;
+          if (parentArray) htmlContent += `<button class="btn-inline" onclick="moveToRoot('${node.id}')" title="Do głównego">🏠</button>`;
+          
+          // Ikona kosza / potwierdzenie
+          htmlContent += `<button class="btn-inline ${isDeleting ? 'btn-delete-confirm' : ''}" onclick="handleDeleteClick(event, '${node.id}')">${isDeleting ? 'Na pewno?' : '🗑️'}</button>`;
+          htmlContent += `</div>`;
+        }
+
+        item.innerHTML = htmlContent;
+
+        item.addEventListener('click', (e) => {
+          if (e.target.tagName === 'BUTTON') return;
+          e.stopPropagation();
+          closeAllModals();
+
+          if (isEditMode) {
+            deleteConfirmId = null; // zresetuj stan usuwania jeśli kliknięto w inną etykietę
+            if (targetFolderForMove) {
+              if (targetFolderForMove !== node.id) {
+                executeMoveNode(node.id, targetFolderForMove);
+              }
+              targetFolderForMove = null;
+              renderTree();
+            } else {
+              enableInlineRename(item, node);
+            }
+          } else {
+            if (node.type === 'folder') {
+              node.open = !node.open;
+              renderTree();
+            } else {
+              openFile(node);
+              fullMenu.classList.remove('open');
+            }
+          }
+        });
+
+        li.appendChild(item);
+
+        if (node.type === 'folder' && node.children) {
+          const ul = document.createElement('ul');
+          ul.className = `nested ${node.open ? 'open' : ''}`;
+          buildTree(node.children, ul, node.children);
+          li.appendChild(ul);
+
+          if (isEditMode) {
+            const moveInBtn = document.createElement('button');
+            moveInBtn.className = `btn-inline ${targetFolderForMove === node.id ? 'target-active' : ''}`;
+            moveInBtn.style.margin = '4px 0 4px 15px';
+            moveInBtn.textContent = targetFolderForMove === node.id ? 'Wybierz element...' : `📥 Wrzuć tutaj`;
+            moveInBtn.onclick = (e) => {
+              e.stopPropagation();
+              closeAllModals();
+              deleteConfirmId = null;
+              targetFolderForMove = targetFolderForMove === node.id ? null : node.id;
+              renderTree();
+            };
+            li.appendChild(moveInBtn);
+          }
+        }
+
+        container.appendChild(li);
+      });
+    }
+
+    // Obsługa usuwania elementu
+    window.handleDeleteClick = function(e, id) {
+      e.stopPropagation();
+      if (deleteConfirmId === id) {
+        // Drugie kliknięcie - wykonujemy usunięcie
+        deleteNodeById(id);
+        deleteConfirmId = null;
+      } else {
+        // Pierwsze kliknięcie - proszenie o potwierdzenie
+        deleteConfirmId = id;
+      }
+      renderTree();
+    };
+
+    function deleteNodeById(id) {
+      function removeRecursive(nodes) {
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].id === id) {
+            const removed = nodes.splice(i, 1)[0];
+            closeTabsForDeletedNode(removed);
+            return true;
+          }
+          if (nodes[i].children && removeRecursive(nodes[i].children)) return true;
+        }
+        return false;
+      }
+      removeRecursive(fileData);
+      saveState();
+      renderTabs();
+      loadEditorContent();
+    }
+
+    // Zamknięcie otwartych kart po usunięciu pliku/folderu
+    function closeTabsForDeletedNode(node) {
+      if (node.type === 'file') {
+        closeTab(node.id);
+      } else if (node.children) {
+        node.children.forEach(child => closeTabsForDeletedNode(child));
+      }
+    }
+
+    function executeMoveNode(sourceId, targetFolderId) {
+      let movedNode = null;
+      function remove(nodes) {
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].id === sourceId) {
+            return nodes.splice(i, 1)[0];
+          }
+          if (nodes[i].children) {
+            const found = remove(nodes[i].children);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+
+      movedNode = remove(fileData);
+      if (movedNode) {
+        const target = findNodeById(fileData, targetFolderId);
+        if (target && target.children) {
+          target.children.push(movedNode);
+          target.open = true;
+        }
+      }
+      saveState();
+    }
+
+    window.moveOrder = function(id, direction) {
+      function swapInArray(nodes) {
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].id === id) {
+            if (direction === 'up' && i > 0) {
+              const temp = nodes[i];
+              nodes[i] = nodes[i - 1];
+              nodes[i - 1] = temp;
+              return true;
+            } else if (direction === 'down' && i < nodes.length - 1) {
+              const temp = nodes[i];
+              nodes[i] = nodes[i + 1];
+              nodes[i + 1] = temp;
+              return true;
+            }
+          }
+          if (nodes[i].children && swapInArray(nodes[i].children)) return true;
+        }
+        return false;
+      }
+      swapInArray(fileData);
+      saveState();
+      renderTree();
+    };
+
+    window.moveToRoot = function(id) {
+      let movedNode = null;
+      function remove(nodes) {
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].id === id) {
+            return nodes.splice(i, 1)[0];
+          }
+          if (nodes[i].children) {
+            const found = remove(nodes[i].children);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+      movedNode = remove(fileData);
+      if (movedNode) {
+        fileData.push(movedNode);
+      }
+      saveState();
+      renderTree();
+    };
+
+    function enableInlineRename(itemElement, node) {
+      const labelSpan = itemElement.querySelector('.label');
+      if (!labelSpan) return;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'rename-input';
+      input.value = node.name;
+
+      labelSpan.replaceWith(input);
+      input.focus();
+      input.select();
+
+      let isSaved = false;
+      const saveRename = () => {
+        if (isSaved) return;
+        isSaved = true;
+        const newName = input.value.trim();
+        if (newName) node.name = newName;
+        saveState();
+        renderTree();
+        renderTabs();
+      };
+
+      input.addEventListener('blur', saveRename);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur();
+        if (e.key === 'Escape') { isSaved = true; renderTree(); }
+      });
+    }
+
+    document.getElementById('btnNewFolder').addEventListener('click', () => {
+      closeAllModals();
+      fileData.push({
+        id: Date.now().toString(),
+        name: 'Nowy folder',
+        type: 'folder',
+        open: true,
+        children: []
+      });
+      saveState();
+      renderTree();
+    });
+
+    const btnNewFile = document.getElementById('btnNewFile');
+    btnNewFile.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = modalExt.classList.contains('open');
+      closeAllModals();
+      if (!isOpen) {
+        const rect = btnNewFile.getBoundingClientRect();
+        modalExt.style.top = `${rect.bottom + 5}px`;
+        modalExt.style.left = `${rect.left}px`;
+        modalExt.classList.add('open');
+      }
+    });
+
+    document.querySelectorAll('#modalExt .modal-option').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const ext = e.target.dataset.ext;
+        closeAllModals();
+
+        const newFile = {
+          id: Date.now().toString(),
+          name: 'Nowy plik',
+          ext: ext,
+          type: 'file',
+          content: ''
+        };
+        fileData.push(newFile);
+        saveState();
+        renderTree();
+        openFile(newFile);
+        fullMenu.classList.remove('open');
+      });
+    });
+
+    btnExportImportMenu.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = modalExportImport.classList.contains('open');
+      closeAllModals();
+      if (!isOpen) {
+        modalExportImport.classList.add('open');
+      }
+    });
+
+    document.getElementById('btnExport').addEventListener('click', () => {
+      closeAllModals();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fileData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "vibe_os_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+
+    document.getElementById('btnImportTrigger').addEventListener('click', () => {
+      closeAllModals();
+      importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', (e) => {
+      const fileReader = new FileReader();
+      if (e.target.files[0]) {
+        fileReader.readAsText(e.target.files[0], "UTF-8");
+        fileReader.onload = (event) => {
+          try {
+            fileData = JSON.parse(event.target.result);
+            openTabs = [];
+            activeFileId = null;
+            saveState();
+            renderTree();
+            renderTabs();
+            loadEditorContent();
+          } catch (err) {
+            console.error("Błąd pliku JSON");
+          }
+        };
+      }
+    });
+
+    window.addEventListener('click', () => {
+      closeAllModals();
+    });
+
+    function openFile(node) {
+      if (!openTabs.includes(node.id)) {
+        openTabs.push(node.id);
+      }
+      activeFileId = node.id;
+      saveState();
+      renderTabs();
+      loadEditorContent();
+    }
+
+    function renderTabs() {
+      tabsBar.innerHTML = '';
+      openTabs.forEach(id => {
+        const file = findNodeById(fileData, id);
+        if (!file) return;
+
+        const tab = document.createElement('div');
+        tab.className = `tab ${file.id === activeFileId ? 'active' : ''}`;
+        tab.innerHTML = `
+          <span>${file.name}${file.ext}</span>
+          <span class="tab-close" data-id="${file.id}">✕</span>
+        `;
+
+        tab.addEventListener('click', (e) => {
+          if (e.target.classList.contains('tab-close')) {
+            e.stopPropagation();
+            closeTab(file.id);
+          } else {
+            activeFileId = file.id;
+            saveState();
+            renderTabs();
+            loadEditorContent();
+          }
+        });
+
+        tabsBar.appendChild(tab);
+      });
+    }
+
+    function closeTab(id) {
+      openTabs = openTabs.filter(tabId => tabId !== id);
+      if (activeFileId === id) {
+        activeFileId = openTabs.length ? openTabs[openTabs.length - 1] : null;
+      }
+      saveState();
+      renderTabs();
+      loadEditorContent();
+    }
+
+    function loadEditorContent() {
+      if (!activeFileId) {
+        editor.value = '';
+        editor.disabled = true;
+        editor.placeholder = "Wybierz plik z menu (☰), aby edytować...";
+        return;
+      }
+      const file = findNodeById(fileData, activeFileId);
+      if (file) {
+        editor.value = file.content || '';
+        editor.disabled = false;
+      }
+    }
+
+    editor.addEventListener('input', () => {
+      if (!activeFileId) return;
+      const file = findNodeById(fileData, activeFileId);
+      if (file) {
+        file.content = editor.value;
+        saveState();
+      }
+    });
+
+    function findNodeById(nodes, id) {
+      for (let node of nodes) {
+        if (node.id === id) return node;
+        if (node.children) {
+          const found = findNodeById(node.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    if (activeFileId) loadEditorContent();
+    renderTabs();
+    renderTree();
+  </script>
+</body>
+</html>
