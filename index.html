@@ -32,7 +32,7 @@
       flex-shrink: 0;
     }
 
-    .hamburger {
+    .nav-btn {
       background: none;
       border: none;
       color: rgba(255, 255, 255, 0.5);
@@ -41,8 +41,11 @@
       height: 100%;
       cursor: pointer;
       border-right: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .hamburger:hover { color: #ffffff; }
+    .nav-btn:hover { color: #ffffff; }
 
     .tabs-container {
       display: flex;
@@ -274,7 +277,8 @@
 
   <!-- Pasek Górny -->
   <div class="top-nav">
-    <button class="hamburger" id="btnToggleMenu">☰</button>
+    <button class="nav-btn" id="btnToggleMenu" title="Menu">☰</button>
+    <button class="nav-btn" id="btnFullscreen" title="Pełny Ekran">🖥️</button>
     <div class="tabs-container" id="tabsBar"></div>
   </div>
 
@@ -333,6 +337,7 @@
 
     const fullMenu = document.getElementById('fullMenu');
     const btnToggleMenu = document.getElementById('btnToggleMenu');
+    const btnFullscreen = document.getElementById('btnFullscreen');
     const fileTree = document.getElementById('fileTree');
     const tabsBar = document.getElementById('tabsBar');
     const editor = document.getElementById('editor');
@@ -352,6 +357,19 @@
     btnToggleMenu.addEventListener('click', () => {
       fullMenu.classList.toggle('open');
       closeAllModals();
+    });
+
+    // Obsługa pełnego ekranu
+    btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Błąd włączania pełnego ekranu: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
     });
 
     btnToggleEdit.addEventListener('click', () => {
