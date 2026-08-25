@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minimal Vibe OS v7</title>
+  <title>Mini VS Code</title>
   <style>
     * {
       box-sizing: border-box;
@@ -29,6 +29,7 @@
       display: flex;
       align-items: center;
       z-index: 5;
+      flex-shrink: 0;
     }
 
     .hamburger {
@@ -92,6 +93,8 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .fullscreen-menu.open {
@@ -109,6 +112,7 @@
       font-size: 0.8rem;
       letter-spacing: 1px;
       color: rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
     }
 
     .actions { display: flex; gap: 8px; position: relative; }
@@ -136,7 +140,10 @@
 
     .tree-container {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 40px;
     }
 
     /* Drzewo Plików */
@@ -322,7 +329,7 @@
     let activeFileId = localStorage.getItem('vibe_active') || null;
     let isEditMode = false;
     let targetFolderForMove = null;
-    let deleteConfirmId = null; // Identyfikator elementu oczekującego na potwierdzenie usunięcia
+    let deleteConfirmId = null;
 
     const fullMenu = document.getElementById('fullMenu');
     const btnToggleMenu = document.getElementById('btnToggleMenu');
@@ -384,15 +391,12 @@
           htmlContent = `<span class="label">${node.name}</span><span class="ext-tag">${node.ext}</span>`;
         }
 
-        // Akcje w trybie edycji
         if (isEditMode) {
           const isDeleting = deleteConfirmId === node.id;
           htmlContent += `<div class="item-actions">`;
           if (index > 0) htmlContent += `<button class="btn-inline" onclick="moveOrder('${node.id}', 'up')">▲</button>`;
           if (index < nodes.length - 1) htmlContent += `<button class="btn-inline" onclick="moveOrder('${node.id}', 'down')">▼</button>`;
           if (parentArray) htmlContent += `<button class="btn-inline" onclick="moveToRoot('${node.id}')" title="Do głównego">🏠</button>`;
-          
-          // Ikona kosza / potwierdzenie
           htmlContent += `<button class="btn-inline ${isDeleting ? 'btn-delete-confirm' : ''}" onclick="handleDeleteClick(event, '${node.id}')">${isDeleting ? 'Na pewno?' : '🗑️'}</button>`;
           htmlContent += `</div>`;
         }
@@ -405,7 +409,7 @@
           closeAllModals();
 
           if (isEditMode) {
-            deleteConfirmId = null; // zresetuj stan usuwania jeśli kliknięto w inną etykietę
+            deleteConfirmId = null;
             if (targetFolderForMove) {
               if (targetFolderForMove !== node.id) {
                 executeMoveNode(node.id, targetFolderForMove);
@@ -454,15 +458,12 @@
       });
     }
 
-    // Obsługa usuwania elementu
     window.handleDeleteClick = function(e, id) {
       e.stopPropagation();
       if (deleteConfirmId === id) {
-        // Drugie kliknięcie - wykonujemy usunięcie
         deleteNodeById(id);
         deleteConfirmId = null;
       } else {
-        // Pierwsze kliknięcie - proszenie o potwierdzenie
         deleteConfirmId = id;
       }
       renderTree();
@@ -486,7 +487,6 @@
       loadEditorContent();
     }
 
-    // Zamknięcie otwartych kart po usunięciu pliku/folderu
     function closeTabsForDeletedNode(node) {
       if (node.type === 'file') {
         closeTab(node.id);
