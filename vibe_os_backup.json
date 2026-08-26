@@ -1,0 +1,120 @@
+[
+  {
+    "id": "1787700453278",
+    "name": "Na brudno/Na szybko",
+    "type": "folder",
+    "open": true,
+    "children": [
+      {
+        "id": "1787700390687",
+        "name": "Losowe pomysły",
+        "ext": ".pomysl",
+        "type": "file",
+        "content": "Chcę stworzyć coś w stylu takiego hologramu, ale najbliżej do tego jest jedynie projektor...\n\nStworzyć własną stronę internetową portfolio w minimalistycznym stylu."
+      },
+      {
+        "id": "1787701054143",
+        "name": "Cytaty",
+        "ext": ".nota",
+        "type": "file",
+        "content": "\"Minimalizm to mój priorytet\"\n\"Minimazilizm pozwala lepiej pokładać myśli\"\nDo tej stronki\n\"Nic cię nie rozprasza, pozostajesz tylko ty i twoje myśli.\"\n\"Czasami pomysły biorą się z czystej czerni i głębokich odchłani.\""
+      }
+    ]
+  },
+  {
+    "id": "1787698953199",
+    "name": "Moje projekty",
+    "type": "folder",
+    "open": true,
+    "children": [
+      {
+        "id": "1787698017786",
+        "name": "Lisi",
+        "type": "folder",
+        "open": true,
+        "children": [
+          {
+            "id": "1787698037989",
+            "name": "Osobowość Lisi",
+            "ext": ".nota",
+            "type": "file",
+            "content": "Tutaj dodaj osobowość Lisi"
+          },
+          {
+            "id": "1787698328735",
+            "name": "Ulepszenie Lisi",
+            "ext": ".pomysl",
+            "type": "file",
+            "content": "- Za pomocą funkcji tools calling dodaj więcej możliwości\n- Dodaj więcej lepszych animacji\n- Chcę żeby mogła mnie budzić rano\n- Chcę żeby pamiętała każdą naszą rozmowę i moją osobowość (połączenie z programem obsidian)\n- Dodaj jej podgląd kamerki\n- Chcę żeby była w jakimś urządzeniu lub na jakimś ekraniku które może być zawsze włączone żeby była zawsze przy mnie\n- Myślałem nad czymś podobnym do hologramu żeby mogła prawie że stać na moim biurku, ale raczej bliżej jestem do tego żeby była na mojej ścianie dzięki projektorowi"
+          },
+          {
+            "id": "1787698120115",
+            "name": "Do zrobienia",
+            "ext": ".todo",
+            "type": "file",
+            "content": "- Wklej aktualną osobowość Lisi\n- Wklej oryginalny kod Lisi\n- Zacznij pracować nad ulepszeniami Lisi bez laptopa"
+          },
+          {
+            "id": "1787698476286",
+            "name": "Zmiany jakie zrobiłem",
+            "ext": ".nota",
+            "type": "file",
+            "content": "25.8.2026\nUlepszyłem wygląd modelu 3d Lisi dodając jej pomarańczowe pasemko, ogon i trochę zmieniając inne detale. Zająłem się płyną animacją ogona."
+          },
+          {
+            "id": "1787699943837",
+            "name": "Kody Lisi",
+            "type": "folder",
+            "open": false,
+            "children": [
+              {
+                "id": "1787698202176",
+                "name": "Kod Lisi Oryginalny",
+                "type": "folder",
+                "open": true,
+                "children": []
+              },
+              {
+                "id": "1787698275836",
+                "name": "Kod Lisi Beta",
+                "type": "folder",
+                "open": true,
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "1787700092692",
+        "name": "Avia",
+        "type": "folder",
+        "open": false,
+        "children": [
+          {
+            "id": "1787700116982",
+            "name": "Opis Avii",
+            "ext": ".nota",
+            "type": "file",
+            "content": "Avia to prywatna asystentka Szymona. Ma mu przede wszystkim pomagać w codziennych sprawach i być jego kompanką."
+          }
+        ]
+      },
+      {
+        "id": "1787700290125",
+        "name": "HandTrack OS",
+        "type": "folder",
+        "open": false,
+        "children": [
+          {
+            "id": "1787700319995",
+            "name": "Wymyśl coś później",
+            "ext": ".nota",
+            "type": "file",
+            "content": ""
+          }
+        ]
+      }
+    ]
+  }
+]
